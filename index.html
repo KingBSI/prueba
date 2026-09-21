@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Presupuesto Interactivo de Equipamiento</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 750px; margin: 40px auto; padding: 20px; background: #f4f6f9; color: #333; }
+        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; position: relative; }
+        textarea { width: 100%; height: 120px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px; padding: 10px; box-sizing: border-box; }
+        
+        /* Botones principales */
+        button.btn-principal { background: #007bff; color: white; border: none; padding: 12px; font-size: 16px; width: 100%; cursor: pointer; border-radius: 5px; margin-top: 10px; font-weight: bold; }
+        button.btn-principal:hover { background: #0056b3; }
+        
+        /* Botón para ocultar/mostrar */
+        .btn-toggle { background: #6c757d; color: white; border: none; padding: 6px 12px; font-size: 13px; cursor: pointer; border-radius: 4px; margin-bottom: 10px; font-weight: bold; }
+        .btn-toggle:hover { background: #5a6268; }
+        
+        /* Contenedor colapsable */
+        .panel-codigo { transition: max-height 0.3s ease-out; overflow: hidden; }
+
+        .presupuesto-header { display: none; background: #ffffff; padding: 20px; border-radius: 8px; border-top: 6px solid #28a745; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; text-align: center; }
+        .presupuesto-header h1 { margin: 0 0 10px 0; color: #222; font-size: 24px; }
+        .resumen-metrallas { display: flex; justify-content: space-around; margin-top: 15px; }
+        .metrica { padding: 10px 20px; border-radius: 6px; background: #f8f9fa; min-width: 140px; }
+        .metrica span { display: block; font-size: 12px; color: #666; font-weight: bold; text-transform: uppercase; }
+        .metrica strong { font-size: 20px; color: #222; }
+        .alerta-restante { background: #d4edda; color: #155724; }
+        .alerta-peligro { background: #f8d7da; color: #721c24; }
+
+        .seccion-titulo { margin-top: 25px; color: #444; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+        .tarjeta-contenedor { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .tarjeta { background: #ffffff; border-left: 5px solid #007bff; padding: 15px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+        .tarjeta h3 { margin: 0 0 8px 0; color: #007bff; }
+        .tarjeta p { margin: 5px 0; font-size: 14px; }
+        
+        .control-slider { margin-top: 10px; }
+        .control-slider input { width: 100%; cursor: pointer; }
+        .control-slider div { display: flex; justify-content: space-between; font-size: 11px; color: #777; }
+        
+        .error { color: #dc3545; font-weight: bold; background: #f8d7da; padding: 10px; border-radius: 4px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <!-- Botón interactivo para colapsar -->
+        <button class="btn-toggle" onclick="togglePanelCodigo()" id="btnOcultar">Ocultar Editor de Código 👁️‍🗨️</button>
+        
+        <div id="contenedorPanel" class="panel-codigo">
+            <h2>1. Pega tu JSON de presupuesto aquí abajo:</h2>
+            <textarea id="entrada" placeholder="Pega el JSON completo aquí..."></textarea>
+            <button class="btn-principal" onclick="cargarJSONInicial()">¡Cargar e Inicializar Sistema Dinámico! 📊</button>
+        </div>
+    </div>
+
+    <p id="errorMensaje" class="error"></p>
+
+    <div id="panelPresupuesto" class="presupuesto-header">
+        <h1 id="tituloProyecto">Título del Presupuesto</h1>
+        <div class="resumen-metrallas">
+            <div class="metrica">
+                <span id="txtFondo">Capital</span>
+                <strong id="valFondo">S/ 0</strong>
+            </div>
+            <div class="metrica">
+                <span id="txtGastos">Gastos</span>
+                <strong id="valGastos">S/ 0</strong>
+            </div>
+            <div class="metrica" id="cajaRestante">
+                <span id="txtRestante">Restante</span>
+                <strong id="valRestante">S/ 0</strong>
+            </div>
+        </div>
+    </div>
+
+    <div id="zonasCategorias"></div>
+
+    <script>
+    let datosGlobales = {};
+
+    // Función nueva para ocultar y mostrar la caja del código
+    function togglePanelCodigo() {
+        const panel = document.getElementById('contenedorPanel');
+        const boton = document.getElementById('btnOcultar');
+        
+        if (panel.style.display === 'none') {
+            panel.style.display = 'block';
+            boton.textContent = 'Ocultar Editor de Código 👁️‍🗨️';
+        } else {
+            panel.style.display = 'none';
+            boton.textContent = 'Mostrar Editor de Código 📝';
+        }
+    }
+
+    function cargarJSONInicial() {
+        const texto = document.getElementById('entrada').value;
+        const errorBox = document.getElementById('errorMensaje');
+        const panel = document.getElementById('panelPresupuesto');
+        const zonas = document.getElementById('zonasCategorias');
+
+        errorBox.style.display = 'none';
+        zonas.innerHTML = '';
+        panel.style.display = 'none';
+
+        try {
+            datosGlobales = JSON.parse(texto);
+            
+            const categorias = datosGlobales.categories || [];
+            categorias.forEach(categoria => {
+                const seccion = document.createElement('div');
+                seccion.innerHTML = `<h3 class="seccion-titulo" style="color: ${categoria.color}">${categoria.label}</h3>`;
+                
+                const contenedorTarjetas = document.createElement('div');
+                contenedorTarjetas.className = 'tarjeta-contenedor';
+
+                const campos = categoria.fields || [];
+                campos.forEach(elemento => {
+                    const tarjeta = document.createElement('div');
+                    tarjeta.className = 'tarjeta';
+                    tarjeta.style.borderLeftColor = categoria.color;
+
+                    tarjeta.innerHTML = `
+                        <h3>${elemento.label}</h3>
+                        <p><strong>Costo:</strong> <span id="txt-costo-${elemento.key}">${datosGlobales.labels.currencySymbol} ${elemento.value}</span></p>
+                        <div class="control-slider">
+                            <input type="range" 
+                                   id="slider-${elemento.key}" 
+                                   min="${elemento.min}" 
+                                   max="${elemento.max}" 
+                                   step="${elemento.step}" 
+                                   value="${elemento.value}" 
+                                   oninput="actualizarCosto('${categoria.key}', '${elemento.key}', this.value)">
+                            <div><span>Min: ${elemento.min}</span><span>Max: ${elemento.max}</span></div>
+                        </div>
+                    `;
+                    contenedorTarjetas.appendChild(tarjeta);
+                });
+
+                seccion.appendChild(contenedorTarjetas);
+                zonas.appendChild(seccion);
+            });
+
+            calcularTotales();
+            panel.style.display = 'block';
+            
+            // Opcional: Ocultar automáticamente el panel de código tras cargar con éxito
+            togglePanelCodigo();
+
+        } catch (e) {
+            errorBox.textContent = "Error: JSON no válido.";
+            errorBox.style.display = 'block';
+        }
+    }
+
+    function actualizarCosto(catKey, itemKey, nuevoValor) {
+        nuevoValor = parseFloat(nuevoValor);
+        const categoria = datosGlobales.categories.find(c => c.key === catKey);
+        const campo = categoria.fields.find(f => f.key === itemKey);
+        campo.value = nuevoValor;
+
+        document.getElementById(`txt-costo-${itemKey}`).textContent = `${datosGlobales.labels.currencySymbol} ${nuevoValor}`;
+        calcularTotales();
+    }
+
+    function calcularTotales() {
+        const etiquetas = datosGlobales.labels || {};
+        const moneda = etiquetas.currencySymbol || "S/";
+        
+        document.getElementById('tituloProyecto').textContent = etiquetas.title;
+        document.getElementById('txtFondo').textContent = etiquetas.inputLabel;
+        document.getElementById('txtGastos').textContent = etiquetas.totalLabel;
+        document.getElementById('txtRestante').textContent = etiquetas.heroSubtitle;
+
+        const fondoInicial = datosGlobales.income || 0;
+        let totalGastos = 0;
+
+        datosGlobales.categories.forEach(c => {
+            c.fields.forEach(f => { totalGastos += f.value; });
+        });
+
+        const restante = fondoInicial - totalGastos;
+
+        document.getElementById('valFondo').textContent = `${moneda} ${fondoInicial}`;
+        document.getElementById('valGastos').textContent = `${moneda} ${totalGastos}`;
+        document.getElementById('valRestante').textContent = `${moneda} ${restante}`;
+
+        const cajaRestante = document.getElementById('cajaRestante');
+        if (restante >= 0) {
+            cajaRestante.className = "metrica alerta-restante";
+        } else {
+            cajaRestante.className = "metrica alerta-peligro";
+        }
+    }
+    </script>
+</body>
+</html>
