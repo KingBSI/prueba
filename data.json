@@ -1,0 +1,105 @@
+{
+  "income": 350,
+  "labels": {
+    "currencySymbol": "S/",
+    "title": "Presupuesto de Equipamiento Inicial",
+    "heroSubtitle": "Presupuesto restante",
+    "totalLabel": "Gastos de equipamiento",
+    "ratioLabel": "Porcentaje del fondo utilizado",
+    "breakdownTitle": "Desglose de gastos",
+    "inputLabel": "¿Cuánto capital tienes para implementar la bici?",
+    "inputPlaceholder": "Ingresa tu fondo",
+    "slidersTitle": "Ajusta los costos de lo que te falta",
+    "footerNote": "Ajusta los precios según lo que coticen las tiendas de bicicletas en tu ciudad."
+  },
+  "categories": [
+    {
+      "key": "seguridad",
+      "label": "Seguridad (No negociable)",
+      "color": "#e53935",
+      "open": true,
+      "fields": [
+        {
+          "key": "candado",
+          "label": "Candado U-Lock",
+          "value": 50.0,
+          "min": 30,
+          "max": 200,
+          "step": 10
+        },
+        {
+          "key": "tracker",
+          "label": "Rastreador (AirTag/SmartTag)",
+          "value": 110,
+          "min": 0,
+          "max": 180,
+          "step": 10
+        }
+      ]
+    },
+    {
+      "key": "accesorios",
+      "label": "Accesorios para el cliente",
+      "color": "#1e88e5",
+      "open": true,
+      "fields": [
+        {
+          "key": "casco",
+          "label": "Casco de seguridad",
+          "value": 45,
+          "min": 20,
+          "max": 120,
+          "step": 5
+        },
+        {
+          "key": "luces",
+          "label": "Kit de luces delantera/trasera",
+          "value": 25,
+          "min": 10,
+          "max": 80,
+          "step": 5
+        },
+        {
+          "key": "mantenimiento",
+          "label": "Ajuste de frenos/llantas",
+          "value": 20,
+          "min": 0,
+          "max": 60,
+          "step": 5
+        },
+        {
+          "key": "inflador",
+          "label": "Inflador de neumáticos",
+          "value": 30,
+          "min": 15,
+          "max": 50,
+          "step": 5
+        }
+      ]
+    },
+    {
+      "key": "operacion",
+      "label": "Operación y Marketing",
+      "color": "#43a047",
+      "open": false,
+      "fields": [
+        {
+          "key": "contratos",
+          "label": "Impresión de talonario/contratos",
+          "value": 15,
+          "min": 0,
+          "max": 50,
+          "step": 5
+        },
+        {
+          "key": "publicidad",
+          "label": "Publicidad inicial en redes",
+          "value": 30,
+          "min": 0,
+          "max": 150,
+          "step": 10
+        }
+      ]
+    }
+  ]
+}
